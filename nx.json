@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "npmScope": "special-services",
+  "npmScope": "special",
   "affected": {
     "defaultBase": "main"
   },
@@ -27,5 +27,5 @@
       }
     ]
   },
-  "defaultProject": "special-services"
+  "defaultProject": "tenants"
 }

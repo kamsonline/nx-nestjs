@@ -2,6 +2,9 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "special-services": "apps/special-services"
+    "core": "libs/core",
+    "health": "libs/health",
+    "tenants": "apps/tenants",
+    "users": "apps/users"
   }
 }

@@ -14,11 +14,9 @@ describe('AppController', () => {
   });
 
   describe('getData', () => {
-    it('should return "Welcome to special-services!"', () => {
+    it('should return "Welcome to tenants!"', () => {
       const appController = app.get<AppController>(AppController);
-      expect(appController.getData()).toEqual({
-        message: 'Welcome to special-services!',
-      });
+      expect(appController.getData()).toEqual({ message: 'Welcome to tenants!' });
     });
   });
 });
