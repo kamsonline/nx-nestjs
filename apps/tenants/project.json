@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/tenants/src",
   "projectType": "application",
+  "sourceRoot": "apps/tenants/src",
   "targets": {
     "build": {
       "executor": "@nrwl/node:webpack",
@@ -10,34 +10,68 @@
         "outputPath": "dist/apps/tenants",
         "main": "apps/tenants/src/main.ts",
         "tsConfig": "apps/tenants/tsconfig.app.json",
-        "assets": ["apps/tenants/src/assets"]
+        "externalDependencies": "all"
       },
       "configurations": {
         "production": {
           "optimization": true,
           "extractLicenses": true,
           "inspect": false,
+          "externalDependencies": "none",
           "fileReplacements": [
             {
-              "replace": "apps/tenants/src/environments/environment.ts",
-              "with": "apps/tenants/src/environments/environment.prod.ts"
+              "replace": "apps/tenant/src/environments/environment.ts",
+              "with": "apps/tenant/src/environments/environment.prod.ts"
             }
           ]
         }
       }
     },
     "serve": {
-      "executor": "@nrwl/node:node",
+      "executor": "@ns3/nx-serverless:sls",
       "options": {
+        "command": "offline",
         "buildTarget": "tenants:build"
       }
     },
-    "lint": {
-      "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+    "package": {
+      "executor": "@ns3/nx-serverless:sls",
+      "outputs": ["apps/tenants/.serverless", "dist/apps/tenants"],
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "dependencies"
+        }
+      ],
       "options": {
-        "lintFilePatterns": ["apps/tenants/**/*.ts"]
+        "command": "package",
+        "buildTarget": "tenants:build:production"
       }
+    },
+    "deploy": {
+      "executor": "@ns3/nx-serverless:sls",
+      "outputs": ["apps/tenants/.serverless", "dist/apps/tenants"],
+      "dependsOn": [
+        {
+          "target": "package",
+          "projects": "self"
+        }
+      ],
+      "options": {
+        "command": "deploy",
+        "package": ".serverless",
+        "buildTarget": "tenants:build:production"
+      }
+    },
+    "remove": {
+      "executor": "@ns3/nx-serverless:sls",
+      "options": {
+        "command": "remove"
+      }
+    },
+    "sls": {
+      "executor": "@ns3/nx-serverless:sls",
+      "options": {}
     },
     "test": {
       "executor": "@nrwl/jest:jest",
@@ -45,6 +79,13 @@
       "options": {
         "jestConfig": "apps/tenants/jest.config.ts",
         "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/tenants/src/**/*.{ts,tsx,js,jsx}"]
       }
     }
   },

@@ -27,5 +27,7 @@
       }
     ]
   },
-  "defaultProject": "tenants"
+  "cli": {
+    "defaultCollection": "@ns3/nx-serverless"
+  }
 }

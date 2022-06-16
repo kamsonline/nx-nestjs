@@ -1,0 +1,78 @@
+service: tenants
+
+plugins:
+  - '@ns3/nx-serverless/plugin'
+  # - serverless-plugin-typescript
+  - serverless-plugin-optimize
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-dynamodb-local
+
+package:
+  individually: true
+  exclude:
+    - node_modules/typescript/**
+    - node_modules/@types/**
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  TenantsTable:
+    name: !Ref TenantsTable
+    arn: !GetAtt TenantsTable.Arn
+  myEnvironment:
+    MESSAGE:
+      prod: 'This is production environment'
+      dev: 'This is development environment'
+  serverless-offline:
+    httpPort: ${env:HTTP_PORT}
+    lambdaPort: 2333
+    noPrependStageInUrl: true
+  dotenv:
+    # https://github.com/neverendingqs/serverless-dotenv-plugin
+    # default: project root
+    #path: path/to/my/dotenvfiles
+    logging: true
+    include:
+      - HTTP_PORT
+  dynamodb:
+    stages:
+      - ${self:provider.stage}
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: false
+
+params:
+  prod:
+    production: true
+  default:
+    production: false
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${self:custom.stage}
+  endpointType: regional
+  timeout: 20
+  environment:
+    HTTP_PORT: ${env:HTTP_PORT}
+    APP_ENV: ${self:custom.stage}
+    IS_PRODUCTION: ${param:production}
+    NODE_OPTIONS: --enable-source-maps
+    MESSAGE: ${self:custom.myEnvironment.MESSAGE.${self:custom.stage}}
+  iamRoleStatements:
+    - ${file(src/app/db/TenantsTableIAM.yml):TenantsTableIAM}
+
+resources:
+  Resources:
+    TenantsTable: ${file(src/app/db/TenantsTable.yml):TenantsTable}
+
+functions:
+  tenants:
+    handler: src/main.handler
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+          cors: true

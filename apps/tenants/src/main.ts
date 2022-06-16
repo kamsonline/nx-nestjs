@@ -1,20 +1,31 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import { INestApplication } from '@nestjs/common';
+import { Express } from 'express';
 
+import { Server } from 'http';
+import { Context } from 'aws-lambda';
+import { createServer, proxy, Response } from 'aws-serverless-express';
+import * as express from 'express';
 import { AppModule } from './app/app.module';
+let cachedServer: Server;
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  const port = process.env.TENANTS_PORT || 3000;
-  await app.listen(port);
-  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+async function createExpressApp(expressApp: Express): Promise<INestApplication> {
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+  return app;
 }
 
-bootstrap();
+async function bootstrap(): Promise<Server> {
+  const expressApp = express();
+  const app = await createExpressApp(expressApp);
+  await app.init();
+  return createServer(expressApp);
+}
+export async function handler(event: any, context: Context): Promise<Response> {
+  if (!cachedServer) {
+    const server = await bootstrap();
+    cachedServer = server;
+  }
+  console.log(process.env['MESSAGE']);
+  return proxy(cachedServer, event, context, 'PROMISE').promise;
+}
