@@ -25,6 +25,4 @@ Run individual project test by using `yarn nx run-many --target=test --projects=
 
 ## Understand your workspace
 
-Run `yarn nx graph` to see a diagram of the dependencies of your projects.
-
-or `yarn nx dep-graph`
+Run `yarn nx graph` to see a diagram of the dependencies of your projects or `yarn nx dep-graph`
